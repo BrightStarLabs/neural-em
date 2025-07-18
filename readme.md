@@ -1,53 +1,53 @@
-# 🧠 Neural Evolution — Emergent Agents Simulation
+# Neural Evolution Simulation
 
-A sophisticated 2D simulation of autonomous agents with evolved neural network brains, featuring memory inheritance, proportional mutations, and interactive analysis tools.
+2D simulation of autonomous agents with evolved stateful reservoir neural networks.
 
 Each agent:
-- **Thinks** using a recurrent neural network with persistent memory
-- **Senses** the world through dual-channel ray-casting (food and other agents)
-- **Moves** based on learned motor commands (steering and speed)
-- **Survives** by managing life energy and consuming food
-- **Evolves** through reproduction with genetic and memory inheritance
+- **Neural processing** using a stateful reservoir network with persistent memory
+- **Sensory input** through dual-channel ray-casting (food and other agents)
+- **Motor control** for steering and speed
+- **Survival** through life energy management and food consumption
+- **Reproduction** with genetic and memory inheritance
 
-Agents evolve over generations through natural selection, developing sophisticated behaviors for survival and reproduction.
-
----
-
-## 🚀 Key Features
-
-### **Neural Architecture**
-- **Recurrent neural networks** with persistent memory states
-- **Dual-channel sensors** (5 rays each for food and agents = 10 inputs)
-- **Motor outputs** for steering and speed control
-- **Evolutionary optimization** through reproduction and mutation
-
-### **Memory System**
-- **Persistent memory** across agent lifetime
-- **Memory inheritance** from parent to child with configurable mutation
-- **State visualization** in interactive HTML viewer
-
-### **Advanced Genetics**
-- **Proportional mutations** that scale with parameter values
-- **Weight decay regularization** applied at birth
-- **Configurable mutation rates** for all network components
-
-### **Analysis & Visualization**
-- **Real-time Pygame visualization** with sensor ray display
-- **Comprehensive data logging** with CSV export
-- **Interactive HTML network visualizer** with mini-simulation
-- **Automatic plot generation** for fitness evolution and statistics
-
-### **Technical Excellence**
-- **Vectorized NumPy simulation** for high performance
-- **Modular architecture** with clean separation of concerns
-- **Toroidal world** with wrap-around physics
-- **Configurable parameters** through YAML config files
+Agents evolve over generations through natural selection.
 
 ---
 
-## 🖥 Usage
+## Features
 
-### ▶ Basic Simulation
+### Neural Architecture
+- Stateful reservoir neural networks with persistent memory
+- Dual-channel sensors (5 rays each for food and agents = 10 inputs)
+- Motor outputs for steering and speed control
+- Evolutionary optimization through reproduction and mutation
+
+### Memory System
+- Persistent memory across agent lifetime
+- Memory inheritance from parent to child with configurable mutation
+- State visualization in interactive HTML viewer
+
+### Genetics
+- Proportional mutations that scale with parameter values
+- Weight decay regularization applied at birth
+- Configurable mutation rates for all network components
+
+### Analysis & Visualization
+- Real-time Pygame visualization with sensor ray display
+- Data logging with CSV export
+- Interactive HTML network visualizer with mini-simulation
+- Automatic plot generation for fitness evolution and statistics
+
+### Implementation
+- Vectorized NumPy simulation
+- Modular architecture
+- Toroidal world with wrap-around physics
+- YAML configuration files
+
+---
+
+## Usage
+
+### Basic Simulation
 ```bash
 # Headless mode (terminal output)
 python main.py
@@ -59,7 +59,7 @@ python main.py --vis
 python main.py --seed 42
 ```
 
-### ▶ Data Collection & Analysis
+### Data Collection & Analysis
 ```bash
 # Run simulation with data collection
 python main.py --save-data --data-prefix my_experiment --vis
@@ -71,7 +71,7 @@ python main.py --save-data --data-prefix my_experiment --vis
 # 4. Exports JSON for HTML visualizer
 ```
 
-### ▶ Manual Analysis
+### Manual Analysis
 ```bash
 # Generate plots only
 python summary_plotter.py --data-prefix my_experiment
@@ -83,25 +83,25 @@ python summary_plotter.py --data-prefix my_experiment --export-json
 python export_network_data.py --data-prefix my_experiment
 ```
 
-### ▶ Interactive Network Visualization
+### Interactive Network Visualization
 1. Run simulation with `--save-data`
 2. Open `network_visualizer.html` in your browser
 3. Load the generated JSON file from the `data/` folder
 
-**Features:**
-- **3D network layout** with input, hidden (reservoir), and output layers
-- **Connection strength visualization** through transparency and thickness
-- **Self-connections** rendered as loops
-- **Interactive simulation** from current memory state
-- **Weight matrix heatmaps** for all network parameters
-- **Real-time state updates** during mini-simulation
+Features:
+- 3D network layout with input, hidden (reservoir), and output layers
+- Connection strength visualization through transparency and thickness
+- Self-connections rendered as loops
+- Interactive simulation from current memory state
+- Weight matrix heatmaps for all network parameters
+- Real-time state updates during mini-simulation
 
 ---
 
-## 🧬 Neural Architecture
+## Neural Architecture
 
 ### Agent Brain Structure
-Each agent has a recurrent neural network with:
+Each agent has a stateful reservoir neural network with:
 
 ```
 Input Layer (10 neurons)
@@ -138,10 +138,10 @@ This allows evolved "instincts" to be passed between generations.
 
 ---
 
-## 🔬 Evolutionary System
+## Evolutionary System
 
 ### Proportional Mutation
-The system uses a sophisticated mutation scheme that scales with parameter values:
+The system uses a mutation scheme that scales with parameter values:
 
 ```
 param_new = param_old × (1 + μ) × (1 - δ) + μ × k
@@ -167,7 +167,7 @@ Where:
 
 ---
 
-## ⚙️ Configuration
+## Configuration
 
 All parameters are configured through `config.yaml`:
 
@@ -228,7 +228,7 @@ evolution:
 
 ---
 
-## 📊 Data Analysis
+## Data Analysis
 
 ### Automatic Data Export
 When using `--save-data`, the system automatically generates:
@@ -253,7 +253,7 @@ When using `--save-data`, the system automatically generates:
 
 ---
 
-## 🏗️ Architecture
+## Architecture
 
 ### Core Components
 - **`main.py`**: Entry point and command-line interface
@@ -270,23 +270,10 @@ When using `--save-data`, the system automatically generates:
 
 ---
 
-## 🔮 Future Directions
+## Getting Started
 
-- **Advanced sensors**: Vision, communication, or environmental gradients
-- **Multi-objective fitness**: Balance between survival, reproduction, and cooperation
-- **Speciation**: Mechanisms for evolving distinct behavioral niches
-- **Gradient-based learning**: Hybrid evolutionary-gradient optimization
-- **Emergent communication**: Agent-to-agent signaling
-- **Hierarchical control**: Multi-level neural architectures
-
----
-
-## 🚀 Getting Started
-
-1. **Install dependencies**: `pip install -r requirements.txt`
-2. **Run basic simulation**: `python main.py --vis`
-3. **Collect data**: `python main.py --save-data --data-prefix test`
-4. **Analyze results**: Open `network_visualizer.html` and load the generated JSON
-5. **Experiment**: Modify `config.yaml` and observe behavioral changes
-
-The system is designed for easy experimentation and analysis, making it perfect for research into artificial life, neural evolution, and emergent behavior.
+1. Install dependencies: `pip install -r requirements.txt`
+2. Run basic simulation: `python main.py --vis`
+3. Collect data: `python main.py --save-data --data-prefix test`
+4. Analyze results: Open `network_visualizer.html` and load the generated JSON
+5. Experiment: Modify `config.yaml` and observe behavioral changes

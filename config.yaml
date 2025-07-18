@@ -35,7 +35,7 @@ agents:
 #  Fixed visual sensor (NOT evolved)                                    #
 # -------------------------------------------------------------------- #
 sensor:
-  n_rays:      3          # how many sensing beams
+  n_rays:      5          # how many sensing beams
   fov_deg:     60        # total field‑of‑view (degrees)
   ray_length:  80        # max range, world‑pixel units
   mode:        distance   # 'distance' or 'binary' returns
