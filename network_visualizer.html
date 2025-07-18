@@ -1,0 +1,842 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neural Network Visualizer</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .file-input {
+            padding: 12px 24px;
+            font-size: 16px;
+            border: 2px solid #3498db;
+            border-radius: 25px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .file-input:hover {
+            background: #3498db;
+            color: white;
+        }
+
+        .sim-button {
+            padding: 10px 20px;
+            font-size: 14px;
+            border: 2px solid #27ae60;
+            border-radius: 20px;
+            background: #27ae60;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .sim-button:hover {
+            background: #219a52;
+        }
+
+        .sim-button:disabled {
+            background: #95a5a6;
+            border-color: #95a5a6;
+            cursor: not-allowed;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .network-panel {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+        }
+
+        .side-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .info-panel, .state-panel, .simulation-panel {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+
+        .info-item {
+            padding: 10px 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: 500;
+        }
+
+        .state-vector {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            margin-top: 10px;
+        }
+
+        .state-value {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+            color: white;
+            min-width: 40px;
+            text-align: center;
+        }
+
+        .neuron {
+            stroke: #2c3e50;
+            stroke-width: 2;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .input-neuron {
+            fill: #3498db;
+        }
+
+        .hidden-neuron {
+            fill: #e74c3c;
+        }
+
+        .output-neuron {
+            fill: #27ae60;
+        }
+
+        .neuron:hover {
+            stroke-width: 3;
+            filter: brightness(1.1);
+        }
+
+        .neuron-label {
+            font-size: 12px;
+            font-weight: bold;
+            text-anchor: middle;
+            dominant-baseline: middle;
+            fill: white;
+            pointer-events: none;
+        }
+
+        .connection {
+            stroke-width: 1;
+            opacity: 0.7;
+        }
+
+        .connection.strong {
+            stroke-width: 3;
+            opacity: 0.9;
+        }
+
+        .connection.weak {
+            stroke-width: 0.5;
+            opacity: 0.4;
+        }
+
+        .self-connection {
+            fill: none;
+            stroke-width: 2;
+            opacity: 0.8;
+        }
+
+        .layer-label {
+            font-size: 16px;
+            font-weight: bold;
+            text-anchor: middle;
+            fill: #2c3e50;
+        }
+
+        .heatmap-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .heatmap-item {
+            background: white;
+            border-radius: 8px;
+            padding: 15px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .heatmap-cell {
+            stroke: #fff;
+            stroke-width: 0.5;
+            cursor: pointer;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 60px;
+            font-size: 18px;
+            color: #7f8c8d;
+        }
+
+        .error {
+            color: #e74c3c;
+            background: #fadbd8;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+
+        .tooltip {
+            position: absolute;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 12px;
+            pointer-events: none;
+            z-index: 1000;
+            max-width: 200px;
+        }
+
+        .legend {
+            font-size: 10px;
+            text-anchor: middle;
+            fill: #666;
+        }
+
+        .simulation-controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .sim-step {
+            font-family: monospace;
+            font-size: 12px;
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 5px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧠 Neural Network Visualizer</h1>
+        
+        <div class="controls">
+            <input type="file" id="fileInput" accept=".json" class="file-input">
+            <label for="fileInput" class="file-input">Load Network Data (JSON)</label>
+        </div>
+
+        <div id="loading" class="loading">
+            Load a network JSON file to visualize the neural network architecture and weight matrices
+        </div>
+
+        <div id="content" style="display: none;">
+            <div class="main-content">
+                <div class="network-panel">
+                    <h3>Network Architecture</h3>
+                    <div id="network"></div>
+                </div>
+
+                <div class="side-panel">
+                    <div class="info-panel">
+                        <h3>Network Information</h3>
+                        <div id="networkInfo" class="info-grid"></div>
+                    </div>
+
+                    <div class="state-panel">
+                        <h3>Hidden State Vector</h3>
+                        <div id="hiddenState" class="state-vector"></div>
+                    </div>
+
+                    <div class="simulation-panel">
+                        <h3>Mini-Simulation</h3>
+                        <div class="simulation-controls">
+                            <button id="stepBtn" class="sim-button">Step Forward</button>
+                            <button id="autoBtn" class="sim-button">Auto Run</button>
+                            <button id="resetBtn" class="sim-button">Reset</button>
+                        </div>
+                        <div id="simulationOutput"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="heatmap-panel">
+                <h3>Weight Matrices</h3>
+                <div class="heatmap-grid" id="heatmaps"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="tooltip" class="tooltip" style="display: none;"></div>
+
+    <script>
+        let networkData = null;
+        let currentState = null;
+        let originalState = null;
+        let autoRunning = false;
+        let autoInterval = null;
+        const tooltip = d3.select("#tooltip");
+
+        document.getElementById('fileInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    try {
+                        networkData = JSON.parse(e.target.result);
+                        document.getElementById('loading').style.display = 'none';
+                        document.getElementById('content').style.display = 'block';
+                        visualizeNetwork();
+                    } catch (error) {
+                        showError('Error parsing JSON file: ' + error.message);
+                    }
+                };
+                reader.readAsText(file);
+            }
+        });
+
+        // Simulation controls
+        document.getElementById('stepBtn').addEventListener('click', () => {
+            if (networkData && currentState) {
+                simulateStep();
+            }
+        });
+
+        document.getElementById('autoBtn').addEventListener('click', () => {
+            if (networkData && currentState) {
+                if (autoRunning) {
+                    stopAutoRun();
+                } else {
+                    startAutoRun();
+                }
+            }
+        });
+
+        document.getElementById('resetBtn').addEventListener('click', () => {
+            resetSimulation();
+        });
+
+        function showError(message) {
+            const loading = document.getElementById('loading');
+            loading.innerHTML = `<div class="error">${message}</div>`;
+            loading.style.display = 'block';
+        }
+
+        function visualizeNetwork() {
+            if (!networkData) return;
+
+            // Initialize states - handle case where hidden_state might not be available
+            const hiddenState = networkData.genome.hidden_state;
+            if (hiddenState && Array.isArray(hiddenState)) {
+                currentState = [...hiddenState];
+                originalState = [...hiddenState];
+            } else {
+                // Create zero state if hidden_state is not available
+                const neurons = networkData.config.neurons || 5;
+                currentState = new Array(neurons).fill(0);
+                originalState = new Array(neurons).fill(0);
+                console.warn('Hidden state not found in data, using zero state');
+            }
+
+            displayNetworkInfo();
+            drawNetworkArchitecture();
+            drawHeatmaps();
+            updateHiddenStateDisplay();
+        }
+
+        function displayNetworkInfo() {
+            const info = networkData.config;
+            const performance = networkData.performance;
+            
+            const infoHtml = `
+                <div class="info-item">Input Neurons: ${info.input_dim}</div>
+                <div class="info-item">Hidden Neurons: ${info.neurons}</div>
+                <div class="info-item">Output Neurons: ${info.output_dim}</div>
+                <div class="info-item">Fitness: ${performance.fitness.toFixed(2)}</div>
+                <div class="info-item">Age: ${performance.age.toFixed(1)}s</div>
+                <div class="info-item">Food: ${performance.food_consumed.toFixed(0)}</div>
+            `;
+            
+            document.getElementById('networkInfo').innerHTML = infoHtml;
+        }
+
+        function updateHiddenStateDisplay() {
+            const stateContainer = document.getElementById('hiddenState');
+            stateContainer.innerHTML = '';
+            
+            if (!currentState || !Array.isArray(currentState)) {
+                stateContainer.innerHTML = '<div style="color: #666;">No hidden state data available</div>';
+                return;
+            }
+            
+            currentState.forEach((value, index) => {
+                const stateElement = document.createElement('div');
+                stateElement.className = 'state-value';
+                stateElement.textContent = value.toFixed(3);
+                
+                // Color based on activation value
+                const intensity = Math.min(Math.abs(value) * 255, 255);
+                if (value > 0) {
+                    stateElement.style.backgroundColor = `rgb(${255-intensity}, 255, ${255-intensity})`;
+                } else {
+                    stateElement.style.backgroundColor = `rgb(255, ${255-intensity}, ${255-intensity})`;
+                }
+                
+                stateElement.title = `Neuron ${index}: ${value.toFixed(6)}`;
+                stateContainer.appendChild(stateElement);
+            });
+        }
+
+        function drawNetworkArchitecture() {
+            const container = d3.select("#network");
+            container.selectAll("*").remove();
+
+            const config = networkData.config;
+            const genome = networkData.genome;
+            
+            const width = 1200;
+            const height = 800;
+            const svg = container.append("svg")
+                .attr("width", width)
+                .attr("height", height);
+
+            // Define positions
+            const centerX = width / 2;
+            const centerY = height / 2;
+            const reservoirRadius = 150;
+            const inputX = 150;
+            const outputX = width - 150;
+
+            // Calculate neuron positions
+            const inputPositions = [];
+            const outputPositions = [];
+            const hiddenPositions = [];
+
+            // Input neurons (left side)
+            for (let i = 0; i < config.input_dim; i++) {
+                inputPositions.push({
+                    x: inputX,
+                    y: centerY + (i - (config.input_dim - 1) / 2) * 40,
+                    id: i,
+                    type: 'input'
+                });
+            }
+
+            // Hidden neurons (reservoir circle)
+            for (let i = 0; i < config.neurons; i++) {
+                const angle = (i / config.neurons) * 2 * Math.PI;
+                hiddenPositions.push({
+                    x: centerX + Math.cos(angle) * reservoirRadius,
+                    y: centerY + Math.sin(angle) * reservoirRadius,
+                    id: i,
+                    type: 'hidden'
+                });
+            }
+
+            // Output neurons (right side)
+            const outputLabels = ['Steer', 'Speed'];
+            for (let i = 0; i < config.output_dim; i++) {
+                outputPositions.push({
+                    x: outputX,
+                    y: centerY + (i - (config.output_dim - 1) / 2) * 60,
+                    id: i,
+                    type: 'output',
+                    label: outputLabels[i]
+                });
+            }
+
+            // Create arrow markers
+            const defs = svg.append("defs");
+            
+            // Positive weight arrow (blue)
+            defs.append("marker")
+                .attr("id", "arrow-positive")
+                .attr("viewBox", "0 0 10 10")
+                .attr("refX", 8)
+                .attr("refY", 3)
+                .attr("markerWidth", 6)
+                .attr("markerHeight", 6)
+                .attr("orient", "auto")
+                .append("path")
+                .attr("d", "M0,0 L0,6 L9,3 z")
+                .style("fill", "#3498db");
+
+            // Negative weight arrow (red)
+            defs.append("marker")
+                .attr("id", "arrow-negative")
+                .attr("viewBox", "0 0 10 10")
+                .attr("refX", 8)
+                .attr("refY", 3)
+                .attr("markerWidth", 6)
+                .attr("markerHeight", 6)
+                .attr("orient", "auto")
+                .append("path")
+                .attr("d", "M0,0 L0,6 L9,3 z")
+                .style("fill", "#e74c3c");
+
+            // Draw connections
+            drawConnections(svg, inputPositions, hiddenPositions, genome.E, 'input-hidden');
+            drawConnections(svg, hiddenPositions, outputPositions, genome.D, 'hidden-output');
+            drawRecurrentConnections(svg, hiddenPositions, genome.W);
+
+            // Draw neurons
+            drawNeurons(svg, inputPositions, 'input-neuron', 'I');
+            drawNeurons(svg, hiddenPositions, 'hidden-neuron', 'H');
+            drawNeurons(svg, outputPositions, 'output-neuron', 'O');
+
+            // Draw layer labels
+            svg.append("text")
+                .attr("x", inputX)
+                .attr("y", height - 50)
+                .attr("class", "layer-label")
+                .text("Input Layer");
+
+            svg.append("text")
+                .attr("x", centerX)
+                .attr("y", height - 50)
+                .attr("class", "layer-label")
+                .text("Hidden Layer (Reservoir)");
+
+            svg.append("text")
+                .attr("x", outputX)
+                .attr("y", height - 50)
+                .attr("class", "layer-label")
+                .text("Output Layer");
+        }
+
+        function drawConnections(svg, sourceNodes, targetNodes, weights, type) {
+            const maxWeight = Math.max(...weights.flat().map(Math.abs));
+            const minWeight = Math.min(...weights.flat().map(Math.abs));
+            
+            sourceNodes.forEach((source, sourceIdx) => {
+                targetNodes.forEach((target, targetIdx) => {
+                    const weight = weights[targetIdx][sourceIdx];
+                    const absWeight = Math.abs(weight);
+                    
+                    if (absWeight > 0.01) { // Only draw significant connections
+                        const strokeWidth = 1 + (absWeight / maxWeight) * 3;
+                        const opacity = 0.1 + (absWeight / maxWeight) * 0.9;
+                        
+                        svg.append("line")
+                            .attr("x1", source.x)
+                            .attr("y1", source.y)
+                            .attr("x2", target.x)
+                            .attr("y2", target.y)
+                            .attr("class", "connection")
+                            .attr("stroke", weight > 0 ? "#3498db" : "#e74c3c")
+                            .attr("stroke-width", strokeWidth)
+                            .attr("opacity", opacity)
+                            .attr("marker-end", weight > 0 ? "url(#arrow-positive)" : "url(#arrow-negative)")
+                            .on("mouseover", function(event) {
+                                showTooltip(event, `Weight: ${weight.toFixed(4)}<br>From: ${source.type}${sourceIdx}<br>To: ${target.type}${targetIdx}`);
+                            })
+                            .on("mouseout", hideTooltip);
+                    }
+                });
+            });
+        }
+
+        function drawRecurrentConnections(svg, hiddenNodes, weights) {
+            const maxWeight = Math.max(...weights.flat().map(Math.abs));
+            
+            hiddenNodes.forEach((source, sourceIdx) => {
+                hiddenNodes.forEach((target, targetIdx) => {
+                    const weight = weights[targetIdx][sourceIdx];
+                    const absWeight = Math.abs(weight);
+                    
+                    if (absWeight > 0.01) {
+                        if (sourceIdx === targetIdx) {
+                            // Self-connection - draw as a loop
+                            const radius = 20;
+                            const cx = source.x + radius;
+                            const cy = source.y - radius;
+                            
+                            svg.append("circle")
+                                .attr("cx", cx)
+                                .attr("cy", cy)
+                                .attr("r", radius)
+                                .attr("class", "self-connection")
+                                .attr("stroke", weight > 0 ? "#3498db" : "#e74c3c")
+                                .attr("stroke-width", 1 + (absWeight / maxWeight) * 3)
+                                .attr("opacity", 0.2 + (absWeight / maxWeight) * 0.8)
+                                .on("mouseover", function(event) {
+                                    showTooltip(event, `Self-connection<br>Weight: ${weight.toFixed(4)}<br>Neuron: H${sourceIdx}`);
+                                })
+                                .on("mouseout", hideTooltip);
+                        } else {
+                            // Connection between different neurons
+                            const strokeWidth = 1 + (absWeight / maxWeight) * 2;
+                            const opacity = 0.1 + (absWeight / maxWeight) * 0.7;
+                            
+                            // Create curved path
+                            const dx = target.x - source.x;
+                            const dy = target.y - source.y;
+                            const dr = Math.sqrt(dx * dx + dy * dy) * 0.3;
+                            
+                            svg.append("path")
+                                .attr("d", `M${source.x},${source.y}A${dr},${dr} 0 0,1 ${target.x},${target.y}`)
+                                .attr("stroke", weight > 0 ? "#3498db" : "#e74c3c")
+                                .attr("stroke-width", strokeWidth)
+                                .attr("opacity", opacity)
+                                .attr("fill", "none")
+                                .attr("stroke-dasharray", "3,3")
+                                .attr("marker-end", weight > 0 ? "url(#arrow-positive)" : "url(#arrow-negative)")
+                                .on("mouseover", function(event) {
+                                    showTooltip(event, `Recurrent Weight: ${weight.toFixed(4)}<br>From: H${sourceIdx}<br>To: H${targetIdx}`);
+                                })
+                                .on("mouseout", hideTooltip);
+                        }
+                    }
+                });
+            });
+        }
+
+        function drawNeurons(svg, nodes, className, prefix) {
+            nodes.forEach(node => {
+                const radius = node.type === 'hidden' ? 18 : 16;
+                
+                svg.append("circle")
+                    .attr("cx", node.x)
+                    .attr("cy", node.y)
+                    .attr("r", radius)
+                    .attr("class", `neuron ${className}`)
+                    .on("mouseover", function(event) {
+                        let tooltip = `${node.type} Neuron ${node.id}`;
+                        if (node.label) tooltip += `<br>${node.label}`;
+                        if (node.type === 'hidden' && currentState && Array.isArray(currentState) && currentState[node.id] !== undefined) {
+                            tooltip += `<br>State: ${currentState[node.id].toFixed(4)}`;
+                        }
+                        showTooltip(event, tooltip);
+                    })
+                    .on("mouseout", hideTooltip);
+
+                svg.append("text")
+                    .attr("x", node.x)
+                    .attr("y", node.y)
+                    .attr("class", "neuron-label")
+                    .text(node.label || `${prefix}${node.id}`);
+            });
+        }
+
+        function simulateStep() {
+            if (!networkData || !currentState || !Array.isArray(currentState)) return;
+
+            const genome = networkData.genome;
+            const W = genome.W;
+            const b = genome.b;
+            
+            // Zero input (as requested)
+            const input = new Array(networkData.config.input_dim).fill(0);
+            
+            // Simulate one step: S' = tanh(W*S + E*X + b)
+            const newState = [];
+            for (let i = 0; i < currentState.length; i++) {
+                let sum = 0;
+                
+                // Recurrent connections (W*S)
+                for (let j = 0; j < currentState.length; j++) {
+                    sum += W[i][j] * currentState[j];
+                }
+                
+                // Input connections (E*X) - zero input
+                // for (let j = 0; j < input.length; j++) {
+                //     sum += E[i][j] * input[j];
+                // }
+                
+                // Bias
+                if (Array.isArray(b)) {
+                    sum += b[i];
+                }
+                
+                // Apply tanh activation
+                newState[i] = Math.tanh(sum);
+            }
+            
+            currentState = newState;
+            updateHiddenStateDisplay();
+            
+            // Update neuron colors in the visualization
+            updateNeuronVisualization();
+            
+            // Show step info
+            const output = document.getElementById('simulationOutput');
+            const stepDiv = document.createElement('div');
+            stepDiv.className = 'sim-step';
+            stepDiv.innerHTML = `Step: State updated (max: ${Math.max(...currentState).toFixed(3)}, min: ${Math.min(...currentState).toFixed(3)})`;
+            output.appendChild(stepDiv);
+            
+            // Keep only last 10 steps
+            while (output.children.length > 10) {
+                output.removeChild(output.firstChild);
+            }
+        }
+
+        function updateNeuronVisualization() {
+            if (!currentState || !Array.isArray(currentState)) return;
+            
+            const hiddenNeurons = d3.selectAll('.hidden-neuron');
+            hiddenNeurons.each(function(d, i) {
+                const neuron = d3.select(this);
+                const value = currentState[i] || 0;
+                const intensity = Math.min(Math.abs(value), 1);
+                
+                // Color based on activation
+                if (value > 0) {
+                    neuron.style('fill', d3.interpolateRgb('#e74c3c', '#ffffff')(1 - intensity));
+                } else {
+                    neuron.style('fill', d3.interpolateRgb('#e74c3c', '#000000')(intensity));
+                }
+            });
+        }
+
+        function startAutoRun() {
+            autoRunning = true;
+            document.getElementById('autoBtn').textContent = 'Stop Auto';
+            autoInterval = setInterval(simulateStep, 200);
+        }
+
+        function stopAutoRun() {
+            autoRunning = false;
+            document.getElementById('autoBtn').textContent = 'Auto Run';
+            if (autoInterval) {
+                clearInterval(autoInterval);
+                autoInterval = null;
+            }
+        }
+
+        function resetSimulation() {
+            stopAutoRun();
+            if (originalState && Array.isArray(originalState)) {
+                currentState = [...originalState];
+                updateHiddenStateDisplay();
+                updateNeuronVisualization();
+                document.getElementById('simulationOutput').innerHTML = '';
+            }
+        }
+
+        function drawHeatmaps() {
+            const container = d3.select("#heatmaps");
+            container.selectAll("*").remove();
+
+            const genome = networkData.genome;
+            const matrices = [
+                { name: 'E (Input → Hidden)', data: genome.E, title: 'Input Weights' },
+                { name: 'D (Hidden → Output)', data: genome.D, title: 'Output Weights' },
+                { name: 'W (Hidden → Hidden)', data: genome.W, title: 'Recurrent Weights' }
+            ];
+
+            if (genome.b && Array.isArray(genome.b)) {
+                matrices.push({ name: 'b (Bias)', data: [genome.b], title: 'Bias Values' });
+            }
+
+            matrices.forEach(matrix => {
+                const div = container.append("div")
+                    .attr("class", "heatmap-item");
+
+                div.append("h3").text(matrix.title);
+                drawHeatmap(div, matrix.data, matrix.name);
+            });
+        }
+
+        function drawHeatmap(container, data, title) {
+            const width = 300;
+            const height = 250;
+            const margin = { top: 20, right: 20, bottom: 30, left: 40 };
+
+            const svg = container.append("svg")
+                .attr("width", width)
+                .attr("height", height);
+
+            const rows = data.length;
+            const cols = data[0].length;
+            const cellWidth = (width - margin.left - margin.right) / cols;
+            const cellHeight = (height - margin.top - margin.bottom) / rows;
+
+            const allValues = data.flat();
+            const maxVal = Math.max(...allValues);
+            const minVal = Math.min(...allValues);
+
+            const colorScale = d3.scaleSequential(d3.interpolateRdBu)
+                .domain([maxVal, minVal]);
+
+            const g = svg.append("g")
+                .attr("transform", `translate(${margin.left},${margin.top})`);
+
+            // Draw cells
+            for (let i = 0; i < rows; i++) {
+                for (let j = 0; j < cols; j++) {
+                    const value = data[i][j];
+                    
+                    g.append("rect")
+                        .attr("x", j * cellWidth)
+                        .attr("y", i * cellHeight)
+                        .attr("width", cellWidth)
+                        .attr("height", cellHeight)
+                        .attr("fill", colorScale(value))
+                        .attr("class", "heatmap-cell")
+                        .on("mouseover", function(event) {
+                            showTooltip(event, `Value: ${value.toFixed(4)}<br>Row: ${i}, Col: ${j}`);
+                        })
+                        .on("mouseout", hideTooltip);
+                }
+            }
+        }
+
+        function showTooltip(event, content) {
+            tooltip.style("display", "block")
+                .html(content)
+                .style("left", (event.pageX + 10) + "px")
+                .style("top", (event.pageY - 10) + "px");
+        }
+
+        function hideTooltip() {
+            tooltip.style("display", "none");
+        }
+    </script>
+</body>
+</html> 

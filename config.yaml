@@ -1,0 +1,63 @@
+# -------------------------------------------------------------------- #
+#  World geometry & step timing                                         #
+# -------------------------------------------------------------------- #
+world:
+  width:          1800         # pixels
+  height:         900         # pixels
+  dt:             0.05        # seconds per physics step
+  speed_px_s:     50         # px / s at speed command = 1.0
+
+# -------------------------------------------------------------------- #
+#  Food pellets                                                         #
+# -------------------------------------------------------------------- #
+food:
+  radius:         3.0         # px
+  nutrition:      50.0        # life gained per pellet
+  spawn_prob:     1        # probability to add 1 pellet per step
+  max_food:       800         # global cap on pellets
+
+# -------------------------------------------------------------------- #
+#  Agent ecology parameters                                             #
+# -------------------------------------------------------------------- #
+agents:
+  init_count:         400
+  max_agents:         400
+  initial_life:       30.0    # starting life for new agents
+  baseline_cost:      1      # life / s when perfectly still
+  speed_cost_coeff:   5.0      # extra life / s per unit speed
+  steering_cost_coeff: 10.0     # life / s per unit steering (higher than speed)
+  collision_damage:   20.0      # life lost per second during contact
+  reproduction_prob:  0.04     # per‑step probability when fertile
+  reproduction_min_life: 70.0 # life threshold to become fertile
+  life_transfer:      30.0     # life passed to child on birth
+
+# -------------------------------------------------------------------- #
+#  Fixed visual sensor (NOT evolved)                                    #
+# -------------------------------------------------------------------- #
+sensor:
+  n_rays:      3          # how many sensing beams
+  fov_deg:     60        # total field‑of‑view (degrees)
+  ray_length:  80        # max range, world‑pixel units
+  mode:        distance   # 'distance' or 'binary' returns
+
+# -------------------------------------------------------------------- #
+#  Recurrent brain size & I/O                                           #
+# -------------------------------------------------------------------- #
+brain:
+  neurons: 15             # size n of hidden state S_t
+  input_dim:  "{{sensor.n_rays * 2}}"   # 2 channels: food + agents (5+5=10)
+  output_dim: 2           # steer, speed
+  use_bias: true          # include additive bias vector b in update rule
+  decay_factor: 0.03     # weight decay rate (parameter *= (1 - decay_factor * dt))
+  memory_inheritance_mutation: 0.02  # std deviation for memory inheritance mutation
+  mutation_constant: 0.01  # small constant for proportional mutation
+
+# -------------------------------------------------------------------- #
+#  Evolutionary mutation settings (per‑component σ of Gaussian noise)   #
+# -------------------------------------------------------------------- #
+evolution:
+  mutation_std:
+    W: 0.005   # recurrent matrix – conservative
+    b: 0.003   # bias             – very conservative
+    E: 0.015   # encoder          – exploratory
+    D: 0.015   # decoder          – exploratory
