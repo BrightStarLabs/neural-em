@@ -122,7 +122,7 @@ The neural network follows the update rule:
 
 ```
 S[t+1] = tanh(W · S[t] + E · x[t] + b)
-y[t] = D · S[t+1]
+y[t+1] = D · S[t+1]
 ```
 
 Where:
