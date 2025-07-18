@@ -114,26 +114,25 @@ Output Layer (2 neurons: steer, speed)
 ### Mathematical Model
 The neural network follows the update rule:
 
-$$
-\boxed{%
-\begin{aligned}
-S_{t+1} &= \tanh\!\bigl(W \cdot S_{t} + E \cdot x_t + b\bigr)\\[2pt]
-y_t &= D \cdot S_{t+1}
-\end{aligned}}
-$$
+```
+S[t+1] = tanh(W · S[t] + E · x[t] + b)
+y[t] = D · S[t+1]
+```
 
 Where:
-- $S_t \in \mathbb{R}^{n}$ = hidden state (memory) at time $t$
-- $x_t \in \mathbb{R}^{10}$ = sensory input (5 food + 5 agent distances)
-- $y_t = (steer, speed) \in [-1,1] \times [0,1]$ = motor output
-- $W \in \mathbb{R}^{n \times n}$ = recurrent weight matrix
-- $E \in \mathbb{R}^{n \times 10}$ = input projection matrix
-- $D \in \mathbb{R}^{2 \times n}$ = output decoder matrix
-- $b \in \mathbb{R}^{n}$ = bias vector
+- `S[t]` = hidden state (memory) at time t (n-dimensional)
+- `x[t]` = sensory input (10D: 5 food + 5 agent distances)  
+- `y[t]` = motor output (2D: steer ∈ [-1,1], speed ∈ [0,1])
+- `W` = recurrent weight matrix (n×n)
+- `E` = input projection matrix (n×10)
+- `D` = output decoder matrix (2×n)
+- `b` = bias vector (n-dimensional)
 
 ### Memory Inheritance
 During reproduction, children inherit parent's memory state:
-$$S_0^{child} = S_t^{parent} + \mathcal{N}(0, \sigma_{memory}^2)$$
+```
+S[0]_child = S[t]_parent + N(0, σ²_memory)
+```
 
 This allows evolved "instincts" to be passed between generations.
 
@@ -144,12 +143,14 @@ This allows evolved "instincts" to be passed between generations.
 ### Proportional Mutation
 The system uses a sophisticated mutation scheme that scales with parameter values:
 
-$$\text{param}_{new} = \text{param}_{old} \times (1 + \mu) \times (1 - \delta) + \mu \times k$$
+```
+param_new = param_old × (1 + μ) × (1 - δ) + μ × k
+```
 
 Where:
-- $\mu \sim \mathcal{N}(0, \sigma_{mutation}^2)$ = proportional mutation
-- $\delta$ = decay factor (weight regularization)
-- $k$ = small constant (0.01) for additional variation
+- `μ ~ N(0, σ²_mutation)` = proportional mutation (Gaussian noise)
+- `δ` = decay factor (weight regularization)
+- `k` = small constant (0.01) for additional variation
 
 ### Reproduction Process
 1. **Eligibility**: Agent must have life ≥ `reproduction_min_life`
