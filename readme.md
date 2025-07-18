@@ -1,4 +1,4 @@
-# Neural Evolution Simulation
+# Neural Emergent Model
 
 2D simulation of autonomous agents with evolved stateful reservoir neural networks.
 
@@ -12,6 +12,12 @@ Each agent:
 Agents evolve over generations through natural selection.
 
 ---
+
+<img width="987" height="684" alt="image" src="https://github.com/user-attachments/assets/ef77202e-c08b-424a-a17b-7a9e946e9a1f" />
+
+<img width="1470" height="730" alt="image" src="https://github.com/user-attachments/assets/493ef2e2-8c99-4fb6-b8cd-adfffea1c03d" />
+
+
 
 ## Features
 
